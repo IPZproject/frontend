@@ -1,20 +1,19 @@
 import { Alert, Snackbar } from '@mui/material';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setSystemMessage } from '../../../redux/reducers/systemMessages';
+import { useContext } from 'react';
+import { Context } from '../../../context';
 
 export const PopUpMessage = ({ status, message }) => {
-	const isSystemMessage = useSelector(state => state.systemMessage.isSystemMessage);
-	const dispatch = useDispatch();
+	const { messageForUser, setMessageForUser } = useContext(Context);
 
 	const handleClose = () => {
-		dispatch(setSystemMessage(false));
+		setMessageForUser(false);
 	};
 	return (
 		<>
-			{isSystemMessage && (
+			{messageForUser && (
 				<Snackbar
-					open={isSystemMessage}
+					open={messageForUser}
 					autoHideDuration={3000}
 					message={message}
 					onClose={handleClose}

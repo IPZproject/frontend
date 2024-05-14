@@ -2,25 +2,18 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Home } from '../components/Home';
 import { NotFound } from '../components/NotFound';
 import { Profile } from '../components/Profile';
-import { Provider } from 'react-redux';
-import { store } from '../redux/store';
-import App from '../App';
-import { TalentsPage } from '../components/TalentsPage/TalentsPage';
-import { ProofPage } from '../components/ProofPage/ProofPage';
-import { CreateProof } from '../components/CreateProof';
+import { TalentPageContainer } from '../components/TalentsPage/TalentPageContainer';
+import { ContextHOC } from '../context';
+
 export const router = createBrowserRouter([
 	{
 		path: '/',
-		element: (
-			<Provider store={store}>
-				<App />
-			</Provider>
-		),
+		element: <ContextHOC />,
 		errorElement: <NotFound />,
 		children: [
 			{
 				index: true,
-				element: <Navigate to='/home' replace={true} />,
+				element: <Navigate to="/home" replace={true} />,
 			},
 			{
 				path: 'home/*',
@@ -28,22 +21,12 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: 'talents/*',
-				element: <TalentsPage />,
-			},
-			{
-				path: 'proofs/*',
-				element: <ProofPage />,
+				element: <TalentPageContainer />,
 			},
 			{
 				path: 'talent/:talentId/*',
 				element: <Profile />,
-				children: [
-					{
-						path: 'createProof',
-						element: <CreateProof />,
-					},
-				],
-			},
-		],
+			}
+		]
 	},
 ]);

@@ -1,1 +1,0 @@
-export { ProofForm } from './ProofForm';

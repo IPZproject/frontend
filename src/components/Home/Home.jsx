@@ -1,25 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { Slider } from '../shared/Slider';
 import styles from './Home.module.css';
 import rightside_image from '../../assets/5876834.jpg';
 import { Button } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Context } from '../../context';
 import { PopUpMessage } from '../shared/PopUpMessage/PopUpMessage';
-import { useSelector } from 'react-redux';
-import {
-	getAuthTalentId,
-	getIsAuth,
-} from '../../redux/reducers/authentification';
-import { TalentsSlider } from './components/TalentsSlider';
-import { ProofSlider } from './components/ProofSlider/ProofSlider';
 
 export const Home = () => {
-	const isTalent = useSelector(getIsAuth);
-	const authTalent = useSelector(getAuthTalentId);
-	const systemMessage = useSelector(state => state.systemMessage.messageText);
-
+	const { isTalent, authTalent } = useContext(Context);
 	const navigate = useNavigate();
 	const location = useLocation();
-
 	const modalPathname = path => {
 		navigate(`${location.pathname}/${path}`, {
 			state: { from: location.pathname },
@@ -44,8 +35,8 @@ export const Home = () => {
 							variant='contained'
 							onClick={() => {
 								isTalent
-									? navigate(`/talent/${authTalent}`)
-									: modalPathname('register');
+									? navigate(`/talent/${authTalent.talent_id}`)
+									: modalPathname('registrate');
 							}}
 						>
 							Get started
@@ -61,10 +52,8 @@ export const Home = () => {
 					</div>
 				</div>
 			</div>
-			<PopUpMessage message={systemMessage} status='success' />
-
-			<TalentsSlider />
-			<ProofSlider />
+			<PopUpMessage message='Your profile was deleted' status='success' />
+			<Slider />
 		</>
 	);
 };
