@@ -4,55 +4,44 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { Formik, Form } from 'formik';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { Context } from '../../context';
 import styles from './LoginForm.module.css';
 import { validationSchema } from './validation';
 import { FormField } from '../shared/FormField';
-import {
-	authentificateTalent,
-	clearError,
-	getAuthTalentId,
-	getErrors,
-} from '../../redux/reducers/authentification';
-import { useSelector } from 'react-redux';
-import { useStoreDispatch } from '../../redux/store';
+import { parseJwt, setAuthToken } from '../../api';
+import { authAPI } from '../../api/authAPI';
+
 
 export const LoginForm = () => {
+	const { setIsTalent, setAuthTalent } = useContext(Context);
 	const [open, setOpen] = useState(true);
 	const [error, setError] = useState(null);
-
-	const dispatch = useStoreDispatch();
-	const talent_id = useSelector(getAuthTalentId);
-	const authError = useSelector(getErrors);
 
 	const navigate = useNavigate();
 	const location = useLocation();
 
 	const handleClose = () => {
 		setOpen(false);
-		navigate(location.pathname.slice(0, -6), {
-			search: location.search,
-		});
+		navigate(location.state?.from ? location.state.from : '/home');
 	};
 
-	useEffect(() => {
-		if (talent_id) {
-			navigate(`/talent/${talent_id}`);
-		}
-
-		if (authError) {
-			dispatch(clearError());
-		}
-	}, [talent_id]);
-
-	useEffect(() => {
-		setError(authError);
-	}, [authError]);
-
 	const tryToLogin = async formData => {
-		const data = { method: 'login', talentInfo: formData };
-		dispatch(authentificateTalent(data));
+		try {
+			const { data } = await authAPI.login(formData);
+			setAuthToken(data.jwt_token);
+			
+			const { firstname, talent_id } = parseJwt(data.jwt_token);
+
+			setAuthTalent({ talent_id, firstname });
+			setIsTalent(true);
+
+			navigate(`/talent/${talent_id}`);
+		} catch (err) {
+			setError(err.message);
+			console.log(err.message);
+		}
 	};
 
 	return (
@@ -99,13 +88,10 @@ export const LoginForm = () => {
 								<span
 									className={styles.signInElement}
 									onClick={() =>
-										navigate({
-											pathname: `${location.pathname.slice(0, -5)}register`,
-											search: location.search,
-										})
+										navigate(`${location.pathname.slice(0, -5)}registrate`)
 									}
 								>
-									REGISTER NOW
+									SIGN UP
 								</span>
 							</Typography>
 						</Form>

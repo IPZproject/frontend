@@ -7,7 +7,7 @@ import {
 	Typography,
 } from '@mui/material';
 import { Field, Form, Formik } from 'formik';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FormField } from '../shared/FormField';
 import { validationSchema } from './validation';
@@ -16,23 +16,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { skills } from '../../assets/static/skills';
-import { useStoreDispatch } from '../../redux/store';
-import {
-	authentificateTalent,
-	clearError,
-	getAuthTalentId,
-	getErrors,
-} from '../../redux/reducers/authentification';
-import { useSelector } from 'react-redux';
+import { Context } from '../../context';
+import { parseJwt, setAuthToken } from '../../api';
+import { authAPI } from '../../api/authAPI';
 
 export const RegistrationForm = () => {
 	const [modal, setModal] = useState(true);
 	const [error, setError] = useState(null);
 
-	const dispatch = useStoreDispatch();
-	const talent_id = useSelector(getAuthTalentId);
-	const authError = useSelector(getErrors);
+	const { setAuthTalent, setIsTalent, skills } = useContext(Context);
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -48,32 +40,27 @@ export const RegistrationForm = () => {
 
 	const handleClose = () => {
 		setModal(false);
-		navigate(location.pathname.slice(0, -9), {
-			search: location.search,
-		});
+		navigate(location.state?.from ? location.state.from : '/home');
 	};
-
-	useEffect(() => {
-		if (talent_id) {
-			navigate(`/talent/${talent_id}`);
-		}
-
-		if (authError) {
-			dispatch(clearError());
-		}
-	}, [talent_id]);
-
-	useEffect(() => {
-		setError(authError);
-	}, [authError]);
 
 	const register = async formData => {
 		const registerData = { ...formData };
 		delete registerData.confirmPassword;
 
-		const data = { talentInfo: registerData };
+		try {
+			const { data } = await authAPI.registrate(registerData);
+			setAuthToken(data.jwt_token);
+			
+			const { firstname, talent_id } = parseJwt(data.jwt_token);
 
-		dispatch(authentificateTalent(data));
+			setAuthTalent({ talent_id, firstname });
+			setIsTalent(true);
+
+			navigate(`/talent/${talent_id}`);
+		} catch (err) {
+			setError(err.message);
+			console.log(err.message);
+		}
 	};
 
 	return (
@@ -145,7 +132,6 @@ export const RegistrationForm = () => {
 										backgroundColor: '#48bde2',
 										color: '#fff',
 									},
-									maxWidth: '470px',
 								}}
 								multiple
 								limitTags={3}
@@ -167,17 +153,14 @@ export const RegistrationForm = () => {
 								disabled={!isValid}
 								className={styles.logInButton}
 							>
-								REGISTER
+								SIGN UP
 							</Button>
 							<Typography>
 								Are you a talent already?
 								<span
 									className={styles.signInElement}
 									onClick={() => {
-										navigate({
-											pathname: `${location.pathname.slice(0, -8)}login`,
-											search: location.search,
-										});
+										navigate(`${location.pathname.slice(0, -10)}login`);
 									}}
 								>
 									LOG IN

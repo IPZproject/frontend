@@ -1,1 +1,0 @@
-export { ProofBody } from './ProofBody';

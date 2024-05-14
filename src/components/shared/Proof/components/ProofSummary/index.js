@@ -1,1 +1,0 @@
-export { ProofSummary } from './ProofSummary';

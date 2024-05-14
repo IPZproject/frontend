@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import 'swiper/css';
 import { Navigation } from 'swiper';
 import { Button } from '@mui/material';
 import { CircularProgress } from '@mui/material';
-import { Swiper } from 'swiper/react';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import './Slider.css';
+import { SliderTalent } from '../SliderTalent';
+import { talentsAPI } from '../../../api/talentsAPI';
 
-export const Slider = ({ sliderElements, viewAll, isLoading, item }) => {
+export const Slider = () => {
+	const [isLoading, setIsLoading] = useState(true);
+	const [sliderTalentsList, setSliderTalentsList] = useState([]);
+
+	const getSliderTalents = async () => {
+		setIsLoading(true);
+		const { data } = await talentsAPI.getTalents();
+		setSliderTalentsList(data.content);
+		setIsLoading(false);
+	};
+
+	useEffect(() => {
+		getSliderTalents();
+	}, []);
+
 	return (
 		<div className='slider'>
 			{isLoading ? (
@@ -20,8 +36,8 @@ export const Slider = ({ sliderElements, viewAll, isLoading, item }) => {
 					<Swiper
 						loop={true}
 						navigation={{
-							prevEl: `.prev${item}`,
-							nextEl: `.next${item}`,
+							prevEl: '.swiperButtonPrev',
+							nextEl: '.swiperButtonNext',
 						}}
 						slidesPerView={3}
 						modules={[Navigation]}
@@ -37,18 +53,25 @@ export const Slider = ({ sliderElements, viewAll, isLoading, item }) => {
 							},
 						}}
 					>
-						{sliderElements}
+						{sliderTalentsList?.map(user => (
+							<SwiperSlide
+								key={user.id}
+								style={{ display: 'flex', justifyContent: 'center' }}
+							>
+								<SliderTalent talent={user} />
+							</SwiperSlide>
+						))}
 					</Swiper>
-					<div className={`swiperButton swiperButtonPrev prev${item}`}>
+					<div className='swiperButton swiperButtonPrev'>
 						<ArrowBack fontSize='large' />
 					</div>
-					<div className={`swiperButton swiperButtonNext next${item}`}>
+					<div className='swiperButton swiperButtonNext'>
 						<ArrowForward fontSize='large' />
 					</div>
-					<Link to={`/${viewAll}`}>
+					<Link to='/talents'>
 						<Button
 							variant='outlined'
-							sx={{ backgroundColor: '#fff', fontSize: '20px', width: '200px' }}
+							sx={{ backgroundColor: '#fff', fontSize: '30px', width: '300px' }}
 						>
 							View all
 						</Button>

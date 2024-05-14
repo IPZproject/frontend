@@ -1,1 +1,0 @@
-export { CreateProof } from './CreateProof';
